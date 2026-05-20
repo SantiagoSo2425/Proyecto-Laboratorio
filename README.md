@@ -1,6 +1,6 @@
-# Proyecto Laboratorio - Backend
+# Proyecto Laboratorio - Fullstack
 
-Backend en FastAPI con PostgreSQL, SQLAlchemy y JWT.
+Backend en FastAPI + frontend Flutter Web.
 
 ## Stack
 
@@ -19,19 +19,20 @@ Backend en FastAPI con PostgreSQL, SQLAlchemy y JWT.
 ## Levantar local (Docker Compose)
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
 - API: http://localhost:8000
 - Docs: http://localhost:8000/docs
 - Health: http://localhost:8000/health
+- Frontend: http://localhost:8080
 
 ## Inicio rapido (GitHub)
 
 ```bash
 git clone <URL_DEL_REPO>
 cd Proyecto\ Laboratorio
-docker compose up -d
+docker compose up -d --build
 ```
 
 ## Entrar a PostgreSQL
@@ -63,6 +64,12 @@ TEST_DB_NAME=proyecto_db
 TEST_DB_USER=proyecto_user
 TEST_DB_PASSWORD=proyecto_pass
 TEST_SCHEMA=proyecto_test
+```
+
+Variables para frontend (Docker build):
+
+```bash
+API_BASE_URL=http://localhost:8000/api/v1
 ```
 
 ## Datos semilla (seeds)
@@ -118,6 +125,51 @@ curl -X GET "http://localhost:8000/api/v1/personas/?skip=0&limit=100" \
 	-H "Authorization: Bearer TOKEN"
 ```
 
+## Endpoints principales
+
+- POST /api/v1/auth/login
+- GET /api/v1/personas/
+- GET /api/v1/proyectos/
+- GET /api/v1/trabajos-grado/
+- GET /api/v1/productos/
+- GET /api/v1/roles/
+- GET /api/v1/tipos-rol/
+- GET /api/v1/contratos/
+- GET /api/v1/proyecto-personas/
+- GET /api/v1/trabajo-personas/
+- GET /api/v1/proyecto-productos/
+- GET /api/v1/producto-trabajos/
+
+## Frontend Flutter Web
+
+El frontend vive en `flutter_app/` y se compila dentro de Docker.
+La URL base del backend se inyecta en build con `API_BASE_URL`.
+
+Autenticacion:
+- El JWT se guarda en el navegador con `shared_preferences`.
+- Si el token expira o es invalido, se cierra sesion automaticamente.
+
+Si necesitas reconstruir el frontend:
+
+```bash
+docker compose build frontend
+docker compose up -d frontend
+```
+
+Desarrollo local (opcional, sin Docker):
+
+```bash
+cd flutter_app
+flutter pub get
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000/api/v1
+```
+
+## CORS
+
+El backend permite solicitudes desde:
+- http://localhost:8080
+- http://127.0.0.1:8080
+
 ## Pruebas automaticas (pytest)
 
 Requisitos:
@@ -147,6 +199,7 @@ Resultado esperado:
 ## Estructura
 
 - app/
+- flutter_app/
 - tests/
 - docker-compose.yml
 - init/001_schema.sql
@@ -154,3 +207,5 @@ Resultado esperado:
 - main.py
 - requirements.txt
 - requirements-dev.txt
+- LICENSE
+- CONTRIBUTING.md

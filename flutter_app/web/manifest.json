@@ -1,0 +1,9 @@
+{
+  "name": "Proyecto Laboratorio",
+  "short_name": "Laboratorio",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0b3d91",
+  "description": "Proyecto Laboratorio"
+}

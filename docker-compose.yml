@@ -1,4 +1,16 @@
 services:
+  frontend:
+    build:
+      context: ./flutter_app
+      args:
+        API_BASE_URL: http://localhost:8000/api/v1
+    container_name: proyecto_frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
   api:
     image: python:3.11-slim
     container_name: proyecto_api
