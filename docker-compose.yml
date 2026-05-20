@@ -1,0 +1,47 @@
+services:
+  api:
+    image: python:3.11-slim
+    container_name: proyecto_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      APP_ENV: local
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: proyecto_db
+      DB_USER: proyecto_user
+      DB_PASSWORD: proyecto_pass
+      SECRET_KEY: "change_this_in_prod"
+      ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+    command: >
+      sh -c "pip install --no-cache-dir -r requirements.txt && \
+      uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    ports:
+      - "8000:8000"
+
+  postgres:
+    image: postgres:16
+    container_name: proyecto_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: proyecto_db
+      POSTGRES_USER: proyecto_user
+      POSTGRES_PASSWORD: proyecto_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proyecto_user -d proyecto_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
