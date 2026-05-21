@@ -30,6 +30,11 @@ class PersonaUpdate(BaseModel):
     clave: str | None = None
 
 
+class PersonaPasswordChange(BaseModel):
+    current_password: str = Field(min_length=6)
+    new_password: str = Field(min_length=6)
+
+
 class PersonaRead(PersonaBase):
     model_config = ConfigDict(from_attributes=True)
 

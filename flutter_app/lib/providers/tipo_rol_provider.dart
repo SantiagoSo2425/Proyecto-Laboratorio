@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 
-import '../models/persona.dart';
+import '../models/tipo_rol.dart';
 import '../services/api_client.dart';
-import '../services/persona_service.dart';
+import '../services/tipo_rol_service.dart';
 import 'auth_provider.dart';
 
-class PersonaProvider extends ChangeNotifier {
-  final PersonaService _service = PersonaService();
+class TipoRolProvider extends ChangeNotifier {
+  final TipoRolService _service = TipoRolService();
   AuthProvider? _auth;
 
-  List<Persona> personas = [];
+  List<TipoRol> tipos = [];
   bool isLoading = false;
   String? error;
 
@@ -30,19 +30,19 @@ class PersonaProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      personas = await _service.list(token: token);
+      tipos = await _service.list(token: token);
     } on UnauthorizedException {
       error = 'Session expired. Please login again.';
       await _auth?.logout();
     } catch (_) {
-      error = 'Failed to load personas';
+      error = 'Failed to load tipos de rol';
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> create(Map<String, dynamic> data) async {
+  Future<bool> create(String nombre) async {
     final token = _auth?.token;
     if (token == null) {
       error = 'Not authenticated';
@@ -51,7 +51,7 @@ class PersonaProvider extends ChangeNotifier {
     }
 
     try {
-      await _service.create(token: token, data: data);
+      await _service.create(token: token, nombre: nombre);
       await load();
       return true;
     } on UnauthorizedException {
@@ -59,13 +59,13 @@ class PersonaProvider extends ChangeNotifier {
       await _auth?.logout();
       return false;
     } catch (_) {
-      error = 'Failed to create persona';
+      error = 'Failed to create tipo de rol';
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> update(int idPersona, Map<String, dynamic> data) async {
+  Future<bool> update(int idTipo, String nombre) async {
     final token = _auth?.token;
     if (token == null) {
       error = 'Not authenticated';
@@ -74,7 +74,7 @@ class PersonaProvider extends ChangeNotifier {
     }
 
     try {
-      await _service.update(token: token, idPersona: idPersona, data: data);
+      await _service.update(token: token, idTipo: idTipo, nombre: nombre);
       await load();
       return true;
     } on UnauthorizedException {
@@ -82,13 +82,13 @@ class PersonaProvider extends ChangeNotifier {
       await _auth?.logout();
       return false;
     } catch (_) {
-      error = 'Failed to update persona';
+      error = 'Failed to update tipo de rol';
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> delete(int idPersona) async {
+  Future<bool> delete(int idTipo) async {
     final token = _auth?.token;
     if (token == null) {
       error = 'Not authenticated';
@@ -97,7 +97,7 @@ class PersonaProvider extends ChangeNotifier {
     }
 
     try {
-      await _service.delete(token: token, idPersona: idPersona);
+      await _service.delete(token: token, idTipo: idTipo);
       await load();
       return true;
     } on UnauthorizedException {
@@ -105,38 +105,7 @@ class PersonaProvider extends ChangeNotifier {
       await _auth?.logout();
       return false;
     } catch (_) {
-      error = 'Failed to delete persona';
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> changePassword({
-    required int idPersona,
-    required String currentPassword,
-    required String newPassword,
-  }) async {
-    final token = _auth?.token;
-    if (token == null) {
-      error = 'Not authenticated';
-      notifyListeners();
-      return false;
-    }
-
-    try {
-      await _service.changePassword(
-        token: token,
-        idPersona: idPersona,
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      );
-      return true;
-    } on UnauthorizedException {
-      error = 'Session expired. Please login again.';
-      await _auth?.logout();
-      return false;
-    } catch (_) {
-      error = 'Failed to change password';
+      error = 'Failed to delete tipo de rol';
       notifyListeners();
       return false;
     }

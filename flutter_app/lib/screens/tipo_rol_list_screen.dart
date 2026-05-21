@@ -1,61 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/trabajo_grado_provider.dart';
+import '../providers/tipo_rol_provider.dart';
 import '../widgets/empty_state_view.dart';
 import '../widgets/loading_view.dart';
-import 'work_degree_detail_screen.dart';
-import 'work_degree_form_screen.dart';
+import 'tipo_rol_form_screen.dart';
 
-class WorkDegreeListScreen extends StatefulWidget {
-  const WorkDegreeListScreen({super.key});
+class TipoRolListScreen extends StatefulWidget {
+  const TipoRolListScreen({super.key});
 
   @override
-  State<WorkDegreeListScreen> createState() => _WorkDegreeListScreenState();
+  State<TipoRolListScreen> createState() => _TipoRolListScreenState();
 }
 
-class _WorkDegreeListScreenState extends State<WorkDegreeListScreen> {
+class _TipoRolListScreenState extends State<TipoRolListScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TrabajoGradoProvider>().load();
+      context.read<TipoRolProvider>().load();
     });
   }
 
-  Future<void> _openForm() async {
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => const WorkDegreeFormScreen(),
-      ),
-    );
-
-    if (result == true) {
-      await context.read<TrabajoGradoProvider>().load();
-    }
-  }
-
-  Future<void> _openEditForm(int idTrabajo) async {
-    final provider = context.read<TrabajoGradoProvider>();
-    final trabajo = provider.trabajos.firstWhere((item) => item.idTrabajo == idTrabajo);
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => WorkDegreeFormScreen(initial: trabajo),
-      ),
-    );
-
-    if (result == true) {
-      await provider.load();
-    }
-  }
-
-  Future<void> _confirmDelete(int idTrabajo) async {
-    final provider = context.read<TrabajoGradoProvider>();
+  Future<void> _confirmDelete(int idTipo) async {
+    final provider = context.read<TipoRolProvider>();
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar trabajo de grado'),
-        content: const Text('Deseas eliminar este trabajo?'),
+        title: const Text('Eliminar tipo de rol'),
+        content: const Text('Deseas eliminar este tipo de rol?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -70,27 +43,13 @@ class _WorkDegreeListScreenState extends State<WorkDegreeListScreen> {
     );
 
     if (result == true) {
-      await provider.delete(idTrabajo);
+      await provider.delete(idTipo);
     }
-  }
-
-  Future<void> _openDetail(int idTrabajo) async {
-    final provider = context.read<TrabajoGradoProvider>();
-    final trabajo = provider.trabajos.firstWhere((item) => item.idTrabajo == idTrabajo);
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (_) => WorkDegreeDetailScreen(trabajo: trabajo),
-      ),
-    );
-    if (!mounted) {
-      return;
-    }
-    await provider.load();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TrabajoGradoProvider>(
+    return Consumer<TipoRolProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading) {
           return const LoadingView();
@@ -119,9 +78,19 @@ class _WorkDegreeListScreenState extends State<WorkDegreeListScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Trabajos de grado', style: TextStyle(fontSize: 18)),
+                  const Text('Tipos de rol', style: TextStyle(fontSize: 18)),
                   ElevatedButton.icon(
-                    onPressed: _openForm,
+                    onPressed: () => Navigator.of(context)
+                        .push<bool>(
+                          MaterialPageRoute(
+                            builder: (_) => const TipoRolFormScreen(),
+                          ),
+                        )
+                        .then((value) {
+                      if (value == true) {
+                        provider.load();
+                      }
+                    }),
                     icon: const Icon(Icons.add),
                     label: const Text('Nuevo'),
                   ),
@@ -131,44 +100,58 @@ class _WorkDegreeListScreenState extends State<WorkDegreeListScreen> {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: provider.load,
-                child: provider.trabajos.isEmpty
+                child: provider.tipos.isEmpty
                     ? ListView(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
                         physics: const AlwaysScrollableScrollPhysics(),
                         children: [
                           EmptyStateView(
-                            title: 'Sin trabajos de grado',
-                            message: 'Crea un trabajo para asociarlo a proyectos y productos.',
-                            icon: Icons.school,
-                            actionLabel: 'Crear trabajo',
-                            onAction: _openForm,
+                            title: 'Sin tipos de rol',
+                            message: 'Crea un tipo para registrar roles y relaciones.',
+                            icon: Icons.category_outlined,
+                            actionLabel: 'Crear tipo',
+                            onAction: () => Navigator.of(context)
+                                .push<bool>(
+                                  MaterialPageRoute(
+                                    builder: (_) => const TipoRolFormScreen(),
+                                  ),
+                                )
+                                .then((value) {
+                              if (value == true) {
+                                provider.load();
+                              }
+                            }),
                           ),
                         ],
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: provider.trabajos.length,
+                        itemCount: provider.tipos.length,
                         separatorBuilder: (_, __) => const Divider(),
                         itemBuilder: (context, index) {
-                          final trabajo = provider.trabajos[index];
+                          final item = provider.tipos[index];
                           return ListTile(
-                            onTap: () => _openDetail(trabajo.idTrabajo),
-                            title: Text(trabajo.nombre),
-                            subtitle: Text('${trabajo.idProyecto} - ${trabajo.facultad}'),
+                            title: Text(item.nombre),
                             trailing: Wrap(
                               spacing: 8,
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.visibility),
-                                  onPressed: () => _openDetail(trabajo.idTrabajo),
-                                ),
-                                IconButton(
                                   icon: const Icon(Icons.edit),
-                                  onPressed: () => _openEditForm(trabajo.idTrabajo),
+                                  onPressed: () => Navigator.of(context)
+                                      .push<bool>(
+                                        MaterialPageRoute(
+                                          builder: (_) => TipoRolFormScreen(initial: item),
+                                        ),
+                                      )
+                                      .then((value) {
+                                    if (value == true) {
+                                      provider.load();
+                                    }
+                                  }),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete),
-                                  onPressed: () => _confirmDelete(trabajo.idTrabajo),
+                                  onPressed: () => _confirmDelete(item.idTipo),
                                 ),
                               ],
                             ),

@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.crud import persona as crud_persona
-from app.schemas.persona import PersonaCreate, PersonaRead, PersonaUpdate
+from app.schemas.persona import PersonaCreate, PersonaPasswordChange, PersonaRead, PersonaUpdate
+from app.security.password import hash_password, verify_password
 
 router = APIRouter(prefix="/personas")
 
@@ -58,3 +59,25 @@ def delete_persona(
     if not persona:
         raise HTTPException(status_code=404, detail="Persona no encontrada")
     crud_persona.delete(db, persona)
+
+
+@router.post("/{id_persona}/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    id_persona: int,
+    data: PersonaPasswordChange,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+) -> None:
+    if user.id_persona != id_persona:
+        raise HTTPException(status_code=403, detail="No autorizado")
+
+    persona = crud_persona.get(db, id_persona)
+    if not persona:
+        raise HTTPException(status_code=404, detail="Persona no encontrada")
+
+    if not verify_password(data.current_password, persona.clave_hash):
+        raise HTTPException(status_code=400, detail="Clave actual incorrecta")
+
+    persona.clave_hash = hash_password(data.new_password)
+    db.add(persona)
+    db.commit()

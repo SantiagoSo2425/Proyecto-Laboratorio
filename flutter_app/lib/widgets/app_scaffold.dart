@@ -63,6 +63,34 @@ class AppScaffold extends StatelessWidget {
             ),
             const Divider(),
             ListTile(
+              selected: selectedIndex == 4,
+              leading: const Icon(Icons.category),
+              title: const Text('Tipos de rol'),
+              onTap: () {
+                Navigator.pop(context);
+                onSelect(4);
+              },
+            ),
+            ListTile(
+              selected: selectedIndex == 5,
+              leading: const Icon(Icons.badge),
+              title: const Text('Roles'),
+              onTap: () {
+                Navigator.pop(context);
+                onSelect(5);
+              },
+            ),
+            ListTile(
+              selected: selectedIndex == 6,
+              leading: const Icon(Icons.inventory_2),
+              title: const Text('Productos'),
+              onTap: () {
+                Navigator.pop(context);
+                onSelect(6);
+              },
+            ),
+            const Divider(),
+            ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Salir'),
               onTap: () async {

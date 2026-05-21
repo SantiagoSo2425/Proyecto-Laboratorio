@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 
-import '../models/persona.dart';
+import '../models/proyecto_producto.dart';
 import '../services/api_client.dart';
-import '../services/persona_service.dart';
+import '../services/proyecto_producto_service.dart';
 import 'auth_provider.dart';
 
-class PersonaProvider extends ChangeNotifier {
-  final PersonaService _service = PersonaService();
+class ProyectoProductoProvider extends ChangeNotifier {
+  final ProyectoProductoService _service = ProyectoProductoService();
   AuthProvider? _auth;
 
-  List<Persona> personas = [];
+  List<ProyectoProducto> relaciones = [];
   bool isLoading = false;
   String? error;
 
@@ -30,91 +30,21 @@ class PersonaProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      personas = await _service.list(token: token);
+      relaciones = await _service.list(token: token);
     } on UnauthorizedException {
       error = 'Session expired. Please login again.';
       await _auth?.logout();
     } catch (_) {
-      error = 'Failed to load personas';
+      error = 'Failed to load proyecto productos';
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> create(Map<String, dynamic> data) async {
-    final token = _auth?.token;
-    if (token == null) {
-      error = 'Not authenticated';
-      notifyListeners();
-      return false;
-    }
-
-    try {
-      await _service.create(token: token, data: data);
-      await load();
-      return true;
-    } on UnauthorizedException {
-      error = 'Session expired. Please login again.';
-      await _auth?.logout();
-      return false;
-    } catch (_) {
-      error = 'Failed to create persona';
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> update(int idPersona, Map<String, dynamic> data) async {
-    final token = _auth?.token;
-    if (token == null) {
-      error = 'Not authenticated';
-      notifyListeners();
-      return false;
-    }
-
-    try {
-      await _service.update(token: token, idPersona: idPersona, data: data);
-      await load();
-      return true;
-    } on UnauthorizedException {
-      error = 'Session expired. Please login again.';
-      await _auth?.logout();
-      return false;
-    } catch (_) {
-      error = 'Failed to update persona';
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> delete(int idPersona) async {
-    final token = _auth?.token;
-    if (token == null) {
-      error = 'Not authenticated';
-      notifyListeners();
-      return false;
-    }
-
-    try {
-      await _service.delete(token: token, idPersona: idPersona);
-      await load();
-      return true;
-    } on UnauthorizedException {
-      error = 'Session expired. Please login again.';
-      await _auth?.logout();
-      return false;
-    } catch (_) {
-      error = 'Failed to delete persona';
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> changePassword({
-    required int idPersona,
-    required String currentPassword,
-    required String newPassword,
+  Future<bool> create({
+    required String idProyecto,
+    required int idProducto,
   }) async {
     final token = _auth?.token;
     if (token == null) {
@@ -124,19 +54,72 @@ class PersonaProvider extends ChangeNotifier {
     }
 
     try {
-      await _service.changePassword(
-        token: token,
-        idPersona: idPersona,
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      );
+      await _service.create(token: token, idProyecto: idProyecto, idProducto: idProducto);
+      await load();
       return true;
     } on UnauthorizedException {
       error = 'Session expired. Please login again.';
       await _auth?.logout();
       return false;
     } catch (_) {
-      error = 'Failed to change password';
+      error = 'Failed to create proyecto producto';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> update({
+    required int id,
+    required String idProyecto,
+    required int idProducto,
+  }) async {
+    final token = _auth?.token;
+    if (token == null) {
+      error = 'Not authenticated';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      await _service.update(
+        token: token,
+        id: id,
+        data: {
+          'id_proyecto': idProyecto,
+          'id_producto': idProducto,
+        },
+      );
+      await load();
+      return true;
+    } on UnauthorizedException {
+      error = 'Session expired. Please login again.';
+      await _auth?.logout();
+      return false;
+    } catch (_) {
+      error = 'Failed to update proyecto producto';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> delete(int id) async {
+    final token = _auth?.token;
+    if (token == null) {
+      error = 'Not authenticated';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      await _service.delete(token: token, id: id);
+      await load();
+      return true;
+    } on UnauthorizedException {
+      error = 'Session expired. Please login again.';
+      await _auth?.logout();
+      return false;
+    } catch (_) {
+      error = 'Failed to delete proyecto producto';
       notifyListeners();
       return false;
     }

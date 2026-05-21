@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../widgets/app_scaffold.dart';
 import 'personas_screen.dart';
+import 'producto_list_screen.dart';
 import 'project_list_screen.dart';
+import 'rol_list_screen.dart';
+import 'tipo_rol_list_screen.dart';
 import 'work_degree_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,7 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
       0 => const Center(child: Text('Bienvenido')),
       1 => const PersonasScreen(),
       2 => const ProjectListScreen(),
-      _ => const WorkDegreeListScreen(),
+      3 => const WorkDegreeListScreen(),
+      4 => const TipoRolListScreen(),
+      5 => const RolListScreen(),
+      _ => const ProductoListScreen(),
     };
 
     return AppScaffold(

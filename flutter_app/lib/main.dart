@@ -2,9 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
+import 'providers/contrato_provider.dart';
 import 'providers/persona_provider.dart';
+import 'providers/producto_provider.dart';
+import 'providers/producto_trabajo_provider.dart';
+import 'providers/proyecto_persona_provider.dart';
+import 'providers/proyecto_producto_provider.dart';
 import 'providers/proyecto_provider.dart';
+import 'providers/rol_provider.dart';
+import 'providers/tipo_rol_provider.dart';
 import 'providers/trabajo_grado_provider.dart';
+import 'providers/trabajo_persona_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 
@@ -33,6 +41,30 @@ class App extends StatelessWidget {
             return provider;
           },
         ),
+        ChangeNotifierProxyProvider<AuthProvider, TipoRolProvider>(
+          create: (_) => TipoRolProvider(),
+          update: (_, auth, provider) {
+            provider ??= TipoRolProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, RolProvider>(
+          create: (_) => RolProvider(),
+          update: (_, auth, provider) {
+            provider ??= RolProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, ProductoProvider>(
+          create: (_) => ProductoProvider(),
+          update: (_, auth, provider) {
+            provider ??= ProductoProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
         ChangeNotifierProxyProvider<AuthProvider, ProyectoProvider>(
           create: (_) => ProyectoProvider(),
           update: (_, auth, provider) {
@@ -45,6 +77,46 @@ class App extends StatelessWidget {
           create: (_) => TrabajoGradoProvider(),
           update: (_, auth, provider) {
             provider ??= TrabajoGradoProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, ProyectoPersonaProvider>(
+          create: (_) => ProyectoPersonaProvider(),
+          update: (_, auth, provider) {
+            provider ??= ProyectoPersonaProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, TrabajoPersonaProvider>(
+          create: (_) => TrabajoPersonaProvider(),
+          update: (_, auth, provider) {
+            provider ??= TrabajoPersonaProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, ProyectoProductoProvider>(
+          create: (_) => ProyectoProductoProvider(),
+          update: (_, auth, provider) {
+            provider ??= ProyectoProductoProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, ProductoTrabajoProvider>(
+          create: (_) => ProductoTrabajoProvider(),
+          update: (_, auth, provider) {
+            provider ??= ProductoTrabajoProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, ContratoProvider>(
+          create: (_) => ContratoProvider(),
+          update: (_, auth, provider) {
+            provider ??= ContratoProvider();
             provider.attachAuth(auth);
             return provider;
           },

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/proyecto_provider.dart';
+import '../widgets/empty_state_view.dart';
 import '../widgets/loading_view.dart';
+import 'project_detail_screen.dart';
 import 'project_form_screen.dart';
 
 class ProjectListScreen extends StatefulWidget {
@@ -19,6 +21,32 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProyectoProvider>().load();
     });
+  }
+
+  Future<void> _openForm() async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => const ProjectFormScreen(),
+      ),
+    );
+
+    if (result == true) {
+      await context.read<ProyectoProvider>().load();
+    }
+  }
+
+  Future<void> _openEditForm(String idProyecto) async {
+    final provider = context.read<ProyectoProvider>();
+    final proyecto = provider.proyectos.firstWhere((item) => item.idProyecto == idProyecto);
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ProjectFormScreen(initial: proyecto),
+      ),
+    );
+
+    if (result == true) {
+      await provider.load();
+    }
   }
 
   Future<void> _confirmDelete(String idProyecto) async {
@@ -44,6 +72,20 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     if (result == true) {
       await provider.delete(idProyecto);
     }
+  }
+
+  Future<void> _openDetail(String idProyecto) async {
+    final provider = context.read<ProyectoProvider>();
+    final proyecto = provider.proyectos.firstWhere((item) => item.idProyecto == idProyecto);
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => ProjectDetailScreen(proyecto: proyecto),
+      ),
+    );
+    if (!mounted) {
+      return;
+    }
+    await provider.load();
   }
 
   @override
@@ -79,15 +121,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                 children: [
                   const Text('Proyectos', style: TextStyle(fontSize: 18)),
                   ElevatedButton.icon(
-                    onPressed: () => Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (_) => const ProjectFormScreen(),
-                      ),
-                    ).then((value) {
-                      if (value == true) {
-                        provider.load();
-                      }
-                    }),
+                    onPressed: _openForm,
                     icon: const Icon(Icons.add),
                     label: const Text('Nuevo'),
                   ),
@@ -97,39 +131,50 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: provider.load,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: provider.proyectos.length,
-                  separatorBuilder: (_, __) => const Divider(),
-                  itemBuilder: (context, index) {
-                    final proyecto = provider.proyectos[index];
-                    return ListTile(
-                      title: Text(proyecto.nombre),
-                      subtitle: Text('${proyecto.idProyecto} - ${proyecto.entidadFinanciadora}'),
-                      trailing: Wrap(
-                        spacing: 8,
+                child: provider.proyectos.isEmpty
+                    ? ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+                        physics: const AlwaysScrollableScrollPhysics(),
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => Navigator.of(context).push<bool>(
-                              MaterialPageRoute(
-                                builder: (_) => ProjectFormScreen(initial: proyecto),
-                              ),
-                            ).then((value) {
-                              if (value == true) {
-                                provider.load();
-                              }
-                            }),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _confirmDelete(proyecto.idProyecto),
+                          EmptyStateView(
+                            title: 'Sin proyectos',
+                            message: 'Crea un proyecto para empezar a relacionar datos.',
+                            icon: Icons.folder_open,
+                            actionLabel: 'Crear proyecto',
+                            onAction: _openForm,
                           ),
                         ],
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: provider.proyectos.length,
+                        separatorBuilder: (_, __) => const Divider(),
+                        itemBuilder: (context, index) {
+                          final proyecto = provider.proyectos[index];
+                          return ListTile(
+                            onTap: () => _openDetail(proyecto.idProyecto),
+                            title: Text(proyecto.nombre),
+                            subtitle: Text('${proyecto.idProyecto} - ${proyecto.entidadFinanciadora}'),
+                            trailing: Wrap(
+                              spacing: 8,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.visibility),
+                                  onPressed: () => _openDetail(proyecto.idProyecto),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () => _openEditForm(proyecto.idProyecto),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () => _confirmDelete(proyecto.idProyecto),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
             ),
           ],
