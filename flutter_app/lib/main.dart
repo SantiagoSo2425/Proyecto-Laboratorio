@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/persona_provider.dart';
+import 'providers/proyecto_provider.dart';
+import 'providers/trabajo_grado_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 
@@ -27,6 +29,22 @@ class App extends StatelessWidget {
           create: (_) => PersonaProvider(),
           update: (_, auth, provider) {
             provider ??= PersonaProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, ProyectoProvider>(
+          create: (_) => ProyectoProvider(),
+          update: (_, auth, provider) {
+            provider ??= ProyectoProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, TrabajoGradoProvider>(
+          create: (_) => TrabajoGradoProvider(),
+          update: (_, auth, provider) {
+            provider ??= TrabajoGradoProvider();
             provider.attachAuth(auth);
             return provider;
           },

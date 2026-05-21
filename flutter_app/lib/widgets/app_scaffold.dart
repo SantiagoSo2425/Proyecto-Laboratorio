@@ -43,6 +43,24 @@ class AppScaffold extends StatelessWidget {
                 onSelect(1);
               },
             ),
+            ListTile(
+              selected: selectedIndex == 2,
+              leading: const Icon(Icons.folder),
+              title: const Text('Proyectos'),
+              onTap: () {
+                Navigator.pop(context);
+                onSelect(2);
+              },
+            ),
+            ListTile(
+              selected: selectedIndex == 3,
+              leading: const Icon(Icons.school),
+              title: const Text('Trabajos de grado'),
+              onTap: () {
+                Navigator.pop(context);
+                onSelect(3);
+              },
+            ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),

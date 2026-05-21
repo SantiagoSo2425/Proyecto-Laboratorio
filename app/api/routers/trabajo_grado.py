@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -10,7 +11,11 @@ router = APIRouter(prefix="/trabajos-grado", dependencies=[Depends(get_current_u
 
 @router.post("/", response_model=TrabajoGradoRead, status_code=status.HTTP_201_CREATED)
 def create_trabajo(data: TrabajoGradoCreate, db: Session = Depends(get_db)) -> TrabajoGradoRead:
-    return crud_trabajo.create(db, data)
+    try:
+        return crud_trabajo.create(db, data)
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Proyecto no existe") from exc
 
 
 @router.get("/{id_trabajo}", response_model=TrabajoGradoRead)
@@ -33,7 +38,11 @@ def update_trabajo(
     item = crud_trabajo.get(db, id_trabajo)
     if not item:
         raise HTTPException(status_code=404, detail="Trabajo de grado no encontrado")
-    return crud_trabajo.update(db, item, data)
+    try:
+        return crud_trabajo.update(db, item, data)
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Proyecto no existe") from exc
 
 
 @router.delete("/{id_trabajo}", status_code=status.HTTP_204_NO_CONTENT)
