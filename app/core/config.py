@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     app_env: str = "local"
+    cors_origins: str = "http://localhost:8080,http://127.0.0.1:8080"
 
     db_host: str = "localhost"
     db_port: int = 5432
@@ -22,6 +23,10 @@ class Settings(BaseSettings):
             "postgresql+psycopg2://"
             f"{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
         )
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 settings = Settings()

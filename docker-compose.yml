@@ -3,7 +3,7 @@ services:
     build:
       context: ./flutter_app
       args:
-        API_BASE_URL: http://localhost:8000/api/v1
+        API_BASE_URL: /api/v1
     container_name: proyecto_frontend
     restart: unless-stopped
     depends_on:
@@ -28,6 +28,7 @@ services:
       DB_NAME: proyecto_db
       DB_USER: proyecto_user
       DB_PASSWORD: proyecto_pass
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080}
       SECRET_KEY: "change_this_in_prod"
       ACCESS_TOKEN_EXPIRE_MINUTES: "60"
     command: >

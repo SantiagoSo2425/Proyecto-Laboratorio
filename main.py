@@ -7,8 +7,7 @@ from app.core.config import settings
 app = FastAPI(title="Proyecto Laboratorio", version="0.1.0")
 
 allowed_origins = [
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
+    *settings.cors_origin_list,
 ]
 
 app.add_middleware(
