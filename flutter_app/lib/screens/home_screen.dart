@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../widgets/app_scaffold.dart';
 import 'personas_screen.dart';
 import 'producto_list_screen.dart';
+import 'readme_generator_screen.dart';
 import 'project_list_screen.dart';
 import 'rol_list_screen.dart';
 import 'tipo_rol_list_screen.dart';
@@ -27,7 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
       3 => const WorkDegreeListScreen(),
       4 => const TipoRolListScreen(),
       5 => const RolListScreen(),
-      _ => const ProductoListScreen(),
+      6 => const ProductoListScreen(),
+      _ => const ReadmeGeneratorScreen(),
     };
 
     return AppScaffold(

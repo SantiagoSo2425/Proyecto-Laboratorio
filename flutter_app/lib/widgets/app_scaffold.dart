@@ -89,6 +89,15 @@ class AppScaffold extends StatelessWidget {
                 onSelect(6);
               },
             ),
+            ListTile(
+              selected: selectedIndex == 7,
+              leading: const Icon(Icons.description),
+              title: const Text('Generador README'),
+              onTap: () {
+                Navigator.pop(context);
+                onSelect(7);
+              },
+            ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),

@@ -4,12 +4,26 @@ services:
       context: ./flutter_app
       args:
         API_BASE_URL: /api/v1
+        README_API_BASE_URL: http://localhost:8001
     container_name: proyecto_frontend
     restart: unless-stopped
     depends_on:
       - api
     ports:
       - "8080:80"
+
+  readme_service:
+    build:
+      context: ./readme_service
+    container_name: proyecto_readme_service
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      APP_ENV: local
+      APP_NAME: README Service
+      GITHUB_API_BASE_URL: https://api.github.com
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080}
 
   api:
     image: python:3.11-slim

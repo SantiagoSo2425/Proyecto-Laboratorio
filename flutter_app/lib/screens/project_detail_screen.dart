@@ -5,6 +5,7 @@ import '../models/contrato.dart';
 import '../models/proyecto.dart';
 import '../models/proyecto_persona.dart';
 import '../models/proyecto_producto.dart';
+import '../models/readme_draft.dart';
 import '../providers/contrato_provider.dart';
 import '../providers/persona_provider.dart';
 import '../providers/producto_provider.dart';
@@ -12,6 +13,7 @@ import '../providers/proyecto_persona_provider.dart';
 import '../providers/proyecto_producto_provider.dart';
 import '../providers/proyecto_provider.dart';
 import '../providers/rol_provider.dart';
+import 'readme_generator_screen.dart';
 import '../widgets/section_header.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
@@ -477,6 +479,32 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     await context.read<ContratoProvider>().delete(id);
   }
 
+  ReadmeDraft _buildReadmeDraft({
+    required List<ProyectoPersona> relacionesPersona,
+    required List<Contrato> contratosDelProyecto,
+    required PersonaProvider personaProvider,
+    required RolProvider rolProvider,
+  }) {
+    final participants = relacionesPersona.map((relacion) {
+      final persona = personaProvider.personas.where((item) => item.idPersona == relacion.personaId).firstOrNull;
+      final rol = rolProvider.roles.where((item) => item.idRol == relacion.idRol).firstOrNull;
+      final hasContrato = contratosDelProyecto.any((item) => item.idPersona == relacion.personaId);
+
+      return ReadmeParticipantDraft(
+        name: persona?.nombre ?? 'Persona ${relacion.personaId}',
+        role: rol?.tipo ?? 'Rol ${relacion.idRol}',
+        contract: hasContrato ? 'Contrato asociado al proyecto' : '',
+        dedication: '${relacion.horasSemanales} h/semana',
+        contribution: '',
+      );
+    }).toList();
+
+    return ReadmeDraft.forProject(
+      projectTitle: widget.proyecto.nombre,
+      participants: participants,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final proyectoPersonaProvider = context.watch<ProyectoPersonaProvider>();
@@ -513,6 +541,27 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     const SizedBox(height: 8),
                     Text('ID: ${widget.proyecto.idProyecto}'),
                     Text('Entidad financiadora: ${widget.proyecto.entidadFinanciadora}'),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          final draft = _buildReadmeDraft(
+                            relacionesPersona: relacionesPersona,
+                            contratosDelProyecto: contratosDelProyecto,
+                            personaProvider: personaProvider,
+                            rolProvider: rolProvider,
+                          );
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ReadmeGeneratorScreen(initialDraft: draft),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.description),
+                        label: const Text('Generar README'),
+                      ),
+                    ),
                   ],
                 ),
               ),

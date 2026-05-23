@@ -15,6 +15,7 @@ Arquitectura por capas:
 - Backend: `api -> crud -> models/schemas -> db/security/config`.
 - Frontend: `screens -> providers -> services -> API`.
 - Persistencia: PostgreSQL en esquema `proyecto`.
+- Microservicio README: FastAPI independiente en `readme_service/` para generar y publicar `README.md` en GitHub.
 
 Documentos tecnicos detallados:
 - Backend: [docs/BACKEND.md](docs/BACKEND.md)
@@ -26,6 +27,7 @@ Documentos tecnicos detallados:
 .
 ├─ app/                     # Backend FastAPI (api, crud, models, schemas, security)
 ├─ flutter_app/             # Frontend Flutter Web
+├─ readme_service/           # Microservicio FastAPI para README y GitHub
 ├─ init/                    # SQL de inicializacion (schema + seeds)
 ├─ tests/                   # Pruebas pytest del backend
 ├─ docker-compose.yml       # Orquestacion local
@@ -93,6 +95,7 @@ docker compose up -d --build
 Servicios:
 - Frontend: `http://localhost:8080`
 - API: `http://localhost:8000`
+- README service: `http://localhost:8001`
 - Swagger: `http://localhost:8000/docs`
 - Health: `http://localhost:8000/health`
 - PostgreSQL: `localhost:5432`

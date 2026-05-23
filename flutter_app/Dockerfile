@@ -8,7 +8,8 @@ RUN flutter pub get
 COPY . .
 
 ARG API_BASE_URL
-RUN flutter build web --release --pwa-strategy=none --dart-define=API_BASE_URL=${API_BASE_URL}
+ARG README_API_BASE_URL
+RUN flutter build web --release --pwa-strategy=none --dart-define=API_BASE_URL=${API_BASE_URL} --dart-define=README_API_BASE_URL=${README_API_BASE_URL}
 
 FROM nginx:1.25-alpine
 
