@@ -1,5 +1,7 @@
 class ReadmeParticipantDraft {
   final String name;
+  final String document;
+  final List<String> institutions;
   final String role;
   final String contract;
   final String dedication;
@@ -7,6 +9,8 @@ class ReadmeParticipantDraft {
 
   const ReadmeParticipantDraft({
     required this.name,
+    required this.document,
+    required this.institutions,
     required this.role,
     required this.contract,
     required this.dedication,
@@ -16,6 +20,8 @@ class ReadmeParticipantDraft {
   factory ReadmeParticipantDraft.empty() {
     return const ReadmeParticipantDraft(
       name: '',
+      document: '',
+      institutions: [],
       role: '',
       contract: '',
       dedication: '',
@@ -26,6 +32,8 @@ class ReadmeParticipantDraft {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
+      'document': document,
+      'institutions': institutions,
       'role': role,
       'contract': contract,
       'dedication': dedication,
@@ -89,6 +97,7 @@ class ReadmeDocument {
 class ReadmeDraft {
   final String repositoryOwner;
   final String repositoryName;
+  final String repositoryPath;
   final String branch;
   final String commitMessage;
   final String projectTitle;
@@ -99,6 +108,7 @@ class ReadmeDraft {
   final String execution;
   final List<ReadmeParticipantDraft> participants;
   final String resultsOrStatus;
+  final String osfUrl;
   final String contact;
   final String license;
   final String additionalNotes;
@@ -107,6 +117,7 @@ class ReadmeDraft {
   const ReadmeDraft({
     required this.repositoryOwner,
     required this.repositoryName,
+    required this.repositoryPath,
     required this.branch,
     required this.commitMessage,
     required this.projectTitle,
@@ -117,6 +128,7 @@ class ReadmeDraft {
     required this.execution,
     required this.participants,
     required this.resultsOrStatus,
+    required this.osfUrl,
     required this.contact,
     required this.license,
     required this.additionalNotes,
@@ -127,6 +139,7 @@ class ReadmeDraft {
     return const ReadmeDraft(
       repositoryOwner: '',
       repositoryName: '',
+      repositoryPath: 'README.md',
       branch: '',
       commitMessage: 'Actualizar README.md',
       projectTitle: '',
@@ -137,6 +150,7 @@ class ReadmeDraft {
       execution: '',
       participants: [],
       resultsOrStatus: '',
+      osfUrl: '',
       contact: '',
       license: '',
       additionalNotes: '',
@@ -145,18 +159,40 @@ class ReadmeDraft {
   }
 
   factory ReadmeDraft.forProject({
+    required String projectCode,
     required String projectTitle,
     required List<ReadmeParticipantDraft> participants,
   }) {
+    final repositoryName = projectRepositoryName(projectCode: projectCode, projectTitle: projectTitle);
     return ReadmeDraft.blank().copyWith(
       projectTitle: projectTitle,
+      repositoryName: repositoryName,
+      repositoryPath: repositoryName.isEmpty ? 'README.md' : '$repositoryName/README.md',
       participants: participants,
     );
+  }
+
+  static String normalizeSlug(String value) {
+    final slug = value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+    return slug.replaceAll(RegExp(r'-+'), '-').replaceAll(RegExp(r'^-|-$'), '');
+  }
+
+  static String projectRepositoryName({required String projectCode, required String projectTitle}) {
+    final parts = [normalizeSlug(projectCode), normalizeSlug(projectTitle)]
+        .where((value) => value.isNotEmpty)
+        .toList();
+    return parts.join('-');
+  }
+
+  static String personFolderName({required String document, required String name}) {
+    final parts = [normalizeSlug(document), normalizeSlug(name)].where((value) => value.isNotEmpty).toList();
+    return parts.join('-');
   }
 
   ReadmeDraft copyWith({
     String? repositoryOwner,
     String? repositoryName,
+    String? repositoryPath,
     String? branch,
     String? commitMessage,
     String? projectTitle,
@@ -167,6 +203,7 @@ class ReadmeDraft {
     String? execution,
     List<ReadmeParticipantDraft>? participants,
     String? resultsOrStatus,
+    String? osfUrl,
     String? contact,
     String? license,
     String? additionalNotes,
@@ -175,6 +212,7 @@ class ReadmeDraft {
     return ReadmeDraft(
       repositoryOwner: repositoryOwner ?? this.repositoryOwner,
       repositoryName: repositoryName ?? this.repositoryName,
+      repositoryPath: repositoryPath ?? this.repositoryPath,
       branch: branch ?? this.branch,
       commitMessage: commitMessage ?? this.commitMessage,
       projectTitle: projectTitle ?? this.projectTitle,
@@ -185,6 +223,7 @@ class ReadmeDraft {
       execution: execution ?? this.execution,
       participants: participants ?? this.participants,
       resultsOrStatus: resultsOrStatus ?? this.resultsOrStatus,
+      osfUrl: osfUrl ?? this.osfUrl,
       contact: contact ?? this.contact,
       license: license ?? this.license,
       additionalNotes: additionalNotes ?? this.additionalNotes,
@@ -210,6 +249,7 @@ class ReadmeDraft {
       'execution': execution,
       'participants': participants.map((participant) => participant.toJson()).toList(),
       'results_or_status': resultsOrStatus,
+      'osf_url': osfUrl,
       'contact': contact,
       'license': license,
       'additional_notes': additionalNotes,

@@ -492,6 +492,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
       return ReadmeParticipantDraft(
         name: persona?.nombre ?? 'Persona ${relacion.personaId}',
+        document: persona?.documento ?? '',
+        institutions: persona?.instituciones.map((item) => item.nombre).toList() ?? const [],
         role: rol?.tipo ?? 'Rol ${relacion.idRol}',
         contract: hasContrato ? 'Contrato asociado al proyecto' : '',
         dedication: '${relacion.horasSemanales} h/semana',
@@ -500,6 +502,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     }).toList();
 
     return ReadmeDraft.forProject(
+      projectCode: widget.proyecto.codigoProyecto,
       projectTitle: widget.proyecto.nombre,
       participants: participants,
     );
@@ -540,7 +543,22 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     Text(widget.proyecto.nombre, style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 8),
                     Text('ID: ${widget.proyecto.idProyecto}'),
+                    Text('Codigo: ${widget.proyecto.codigoProyecto}'),
                     Text('Entidad financiadora: ${widget.proyecto.entidadFinanciadora}'),
+                    Text('Tipo: ${widget.proyecto.tipo}'),
+                    const SizedBox(height: 8),
+                    Text('Instituciones', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    if (widget.proyecto.instituciones.isEmpty)
+                      const Text('Sin instituciones asociadas'),
+                    if (widget.proyecto.instituciones.isNotEmpty)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: widget.proyecto.instituciones
+                            .map((item) => Chip(label: Text(item.nombre)))
+                            .toList(),
+                      ),
                     const SizedBox(height: 12),
                     Align(
                       alignment: Alignment.centerRight,

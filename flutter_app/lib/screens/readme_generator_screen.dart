@@ -19,6 +19,7 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
   final _repoController = TextEditingController();
   final _tokenController = TextEditingController();
   final _branchController = TextEditingController();
+  final _pathController = TextEditingController(text: 'README.md');
   final _commitMessageController = TextEditingController(text: 'Actualizar README.md');
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -27,12 +28,14 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
   final _installationController = TextEditingController();
   final _executionController = TextEditingController();
   final _resultsController = TextEditingController();
+  final _osfController = TextEditingController();
   final _contactController = TextEditingController();
   final _licenseController = TextEditingController();
   final _additionalNotesController = TextEditingController();
   final _markdownController = TextEditingController();
 
   final List<_ParticipantFields> _participants = [];
+  int _selectedParticipantIndex = 0;
 
   String _templateText = '';
   List<ReadmeRepositoryOption> _repositories = [];
@@ -56,6 +59,10 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
         _participants.add(_ParticipantFields.fromDraft(participant));
       }
     }
+    for (final participant in _participants) {
+      participant.attachListener(_onParticipantChanged);
+    }
+    _syncDerivedPath();
     _markdownController.text = draft.markdown;
     _markdownController.addListener(() {
       if (mounted) {
@@ -70,6 +77,7 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
     _repoController.dispose();
     _tokenController.dispose();
     _branchController.dispose();
+    _pathController.dispose();
     _commitMessageController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
@@ -78,6 +86,7 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
     _installationController.dispose();
     _executionController.dispose();
     _resultsController.dispose();
+    _osfController.dispose();
     _contactController.dispose();
     _licenseController.dispose();
     _additionalNotesController.dispose();
@@ -91,6 +100,7 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
   void _applyDraft(ReadmeDraft draft) {
     _ownerController.text = draft.repositoryOwner;
     _repoController.text = draft.repositoryName;
+    _pathController.text = draft.repositoryPath;
     _branchController.text = draft.branch;
     _commitMessageController.text = draft.commitMessage;
     _titleController.text = draft.projectTitle;
@@ -100,9 +110,30 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
     _installationController.text = draft.installation;
     _executionController.text = draft.execution;
     _resultsController.text = draft.resultsOrStatus;
+    _osfController.text = draft.osfUrl;
     _contactController.text = draft.contact;
     _licenseController.text = draft.license;
     _additionalNotesController.text = draft.additionalNotes;
+  }
+
+  void _onParticipantChanged() {
+    _syncDerivedPath();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _syncDerivedPath() {
+    final selectedParticipant = _selectedParticipant();
+    if (selectedParticipant == null) {
+      _pathController.text = 'README.md';
+      return;
+    }
+    final folderName = ReadmeDraft.personFolderName(
+      document: selectedParticipant.documentController.text,
+      name: selectedParticipant.nameController.text,
+    );
+    _pathController.text = folderName.isEmpty ? 'README.md' : '$folderName/README.md';
   }
 
   Future<void> _loadTemplate() async {
@@ -200,13 +231,61 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
     });
 
     try {
-      final document = await _service.getReadme(token: token, owner: owner, repo: repo);
+      final document = await _service.getReadme(
+        token: token,
+        owner: owner,
+        repo: repo,
+        path: _currentDraft().repositoryPath,
+      );
       if (!mounted) {
         return;
       }
       setState(() {
         _markdownController.text = document.content;
       });
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _message = error.toString();
+        });
+      }
+    }
+  }
+
+  Future<void> _createRepository() async {
+    final token = _tokenController.text.trim();
+    final owner = _ownerController.text.trim();
+    final repo = _repoController.text.trim();
+    if (token.isEmpty || owner.isEmpty || repo.isEmpty) {
+      setState(() {
+        _message = 'Ingresa owner, repo y token para crear el repositorio.';
+      });
+      return;
+    }
+
+    setState(() {
+      _message = null;
+    });
+
+    try {
+      final created = await _service.createRepository(
+        token: token,
+        owner: owner,
+        kind: _ownerKind,
+        name: repo,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _repositories = [created, ..._repositories.where((item) => item.fullName != created.fullName)];
+        _selectedRepository = created;
+        _repoController.text = created.name;
+        _branchController.text = created.defaultBranch;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Repositorio ${created.fullName} creado correctamente.')),
+      );
     } catch (error) {
       if (mounted) {
         setState(() {
@@ -263,12 +342,14 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
     });
 
     try {
+      final draft = _currentDraft();
       await _service.publish(
         token: token,
         owner: owner,
         repo: repo,
         markdown: _markdownController.text,
         commitMessage: _commitMessageController.text.trim(),
+        path: draft.repositoryPath,
         branch: _branchController.text.trim().isEmpty ? null : _branchController.text.trim(),
       );
       if (!mounted) {
@@ -293,6 +374,8 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
   }
 
   ReadmeDraft _currentDraft() {
+    final selectedParticipant = _selectedParticipant();
+    final participants = selectedParticipant == null ? <ReadmeParticipantDraft>[] : [selectedParticipant.toDraft()];
     return ReadmeDraft(
       repositoryOwner: _ownerController.text.trim(),
       repositoryName: _repoController.text.trim(),
@@ -300,17 +383,16 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
       commitMessage: _commitMessageController.text.trim().isEmpty
           ? 'Actualizar README.md'
           : _commitMessageController.text.trim(),
+      repositoryPath: _pathController.text.trim().isEmpty ? 'README.md' : _pathController.text.trim(),
       projectTitle: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
       objective: _objectiveController.text.trim(),
       technologiesText: _technologiesController.text,
       installation: _installationController.text.trim(),
       execution: _executionController.text.trim(),
-      participants: _participants
-          .map((participant) => participant.toDraft())
-          .where((participant) => participant.name.isNotEmpty || participant.role.isNotEmpty)
-          .toList(),
+      participants: participants,
       resultsOrStatus: _resultsController.text.trim(),
+      osfUrl: _osfController.text.trim(),
       contact: _contactController.text.trim(),
       license: _licenseController.text.trim(),
       additionalNotes: _additionalNotesController.text.trim(),
@@ -318,9 +400,23 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
     );
   }
 
+  _ParticipantFields? _selectedParticipant() {
+    if (_participants.isEmpty) {
+      return null;
+    }
+    if (_selectedParticipantIndex >= _participants.length) {
+      _selectedParticipantIndex = _participants.length - 1;
+    }
+    return _participants[_selectedParticipantIndex];
+  }
+
   void _addParticipant() {
     setState(() {
-      _participants.add(_ParticipantFields.empty());
+      final participant = _ParticipantFields.empty();
+      participant.attachListener(_onParticipantChanged);
+      _participants.add(participant);
+      _selectedParticipantIndex = _participants.length - 1;
+      _syncDerivedPath();
     });
   }
 
@@ -329,8 +425,14 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
       _participants[index].dispose();
       _participants.removeAt(index);
       if (_participants.isEmpty) {
-        _participants.add(_ParticipantFields.empty());
+        final participant = _ParticipantFields.empty();
+        participant.attachListener(_onParticipantChanged);
+        _participants.add(participant);
+        _selectedParticipantIndex = 0;
+      } else if (_selectedParticipantIndex >= _participants.length) {
+        _selectedParticipantIndex = _participants.length - 1;
       }
+      _syncDerivedPath();
     });
   }
 
@@ -456,6 +558,15 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
               ],
             ),
             const SizedBox(height: 12),
+            TextFormField(
+              controller: _pathController,
+              readOnly: true,
+              decoration: const InputDecoration(
+                labelText: 'Ruta del README',
+                helperText: 'Se calcula a partir de documento + nombre de la persona.',
+              ),
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -522,6 +633,12 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
+                  onPressed: _createRepository,
+                  icon: const Icon(Icons.add_box),
+                  label: const Text('Crear repo'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
                   onPressed: _loadReadme,
                   icon: const Icon(Icons.description),
                   label: const Text('Traer README'),
@@ -560,6 +677,7 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
   }
 
   Widget _buildProjectSection(BuildContext context) {
+    final selectedIndex = _participants.isEmpty ? null : _selectedParticipantIndex.clamp(0, _participants.length - 1) as int;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -567,6 +685,30 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Datos del proyecto', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<int>(
+              value: selectedIndex,
+              decoration: const InputDecoration(labelText: 'Persona seleccionada'),
+              items: List.generate(_participants.length, (index) {
+                final participant = _participants[index];
+                final document = participant.documentController.text.trim();
+                final name = participant.nameController.text.trim();
+                final label = [document, name].where((value) => value.isNotEmpty).join(' - ');
+                return DropdownMenuItem<int>(
+                  value: index,
+                  child: Text(label.isEmpty ? 'Persona ${index + 1}' : label),
+                );
+              }),
+              onChanged: (value) {
+                if (value == null) {
+                  return;
+                }
+                setState(() {
+                  _selectedParticipantIndex = value;
+                  _syncDerivedPath();
+                });
+              },
+            ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _titleController,
@@ -610,6 +752,14 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
               controller: _resultsController,
               maxLines: 3,
               decoration: const InputDecoration(labelText: 'Resultados o estado actual'),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _osfController,
+              decoration: const InputDecoration(
+                labelText: 'Enlace OSF (opcional)',
+                helperText: 'Se publicara como referencia dentro del README.',
+              ),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -673,8 +823,8 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: TextFormField(
-                                controller: participant.roleController,
-                                decoration: const InputDecoration(labelText: 'Rol'),
+                                controller: participant.documentController,
+                                decoration: const InputDecoration(labelText: 'Documento'),
                               ),
                             ),
                           ],
@@ -684,24 +834,37 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
                           children: [
                             Expanded(
                               child: TextFormField(
+                                controller: participant.roleController,
+                                decoration: const InputDecoration(labelText: 'Rol'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextFormField(
                                 controller: participant.contractController,
                                 decoration: const InputDecoration(labelText: 'Contrato o vinculación'),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
                             Expanded(
                               child: TextFormField(
                                 controller: participant.dedicationController,
                                 decoration: const InputDecoration(labelText: 'Horas o dedicación'),
                               ),
                             ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextFormField(
+                                controller: participant.contributionController,
+                                maxLines: 2,
+                                decoration: const InputDecoration(labelText: 'Aporte o descripción breve'),
+                              ),
+                            ),
                           ],
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: participant.contributionController,
-                          maxLines: 2,
-                          decoration: const InputDecoration(labelText: 'Aporte o descripción breve'),
                         ),
                         const SizedBox(height: 8),
                         Align(
@@ -739,6 +902,7 @@ class _ReadmeGeneratorScreenState extends State<ReadmeGeneratorScreen> {
 
 class _ParticipantFields {
   final TextEditingController nameController;
+  final TextEditingController documentController;
   final TextEditingController roleController;
   final TextEditingController contractController;
   final TextEditingController dedicationController;
@@ -746,6 +910,7 @@ class _ParticipantFields {
 
   _ParticipantFields({
     required this.nameController,
+    required this.documentController,
     required this.roleController,
     required this.contractController,
     required this.dedicationController,
@@ -755,6 +920,7 @@ class _ParticipantFields {
   factory _ParticipantFields.empty() {
     return _ParticipantFields(
       nameController: TextEditingController(),
+      documentController: TextEditingController(),
       roleController: TextEditingController(),
       contractController: TextEditingController(),
       dedicationController: TextEditingController(),
@@ -765,6 +931,7 @@ class _ParticipantFields {
   factory _ParticipantFields.fromDraft(ReadmeParticipantDraft draft) {
     return _ParticipantFields(
       nameController: TextEditingController(text: draft.name),
+      documentController: TextEditingController(text: draft.document),
       roleController: TextEditingController(text: draft.role),
       contractController: TextEditingController(text: draft.contract),
       dedicationController: TextEditingController(text: draft.dedication),
@@ -772,9 +939,20 @@ class _ParticipantFields {
     );
   }
 
+  void attachListener(VoidCallback listener) {
+    nameController.addListener(listener);
+    documentController.addListener(listener);
+    roleController.addListener(listener);
+    contractController.addListener(listener);
+    dedicationController.addListener(listener);
+    contributionController.addListener(listener);
+  }
+
   ReadmeParticipantDraft toDraft() {
     return ReadmeParticipantDraft(
       name: nameController.text.trim(),
+      document: documentController.text.trim(),
+      institutions: const [],
       role: roleController.text.trim(),
       contract: contractController.text.trim(),
       dedication: dedicationController.text.trim(),
@@ -784,6 +962,7 @@ class _ParticipantFields {
 
   void dispose() {
     nameController.dispose();
+    documentController.dispose();
     roleController.dispose();
     contractController.dispose();
     dedicationController.dispose();

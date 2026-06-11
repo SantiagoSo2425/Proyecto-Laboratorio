@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 from app.core.config import settings
 from app.models.readme import (
+    CreateRepositoryRequest,
     PublishReadmeRequest,
     PublishReadmeResponse,
     ReadmeContentResponse,
@@ -41,8 +42,31 @@ class GitHubClient:
             )
         return repositories
 
-    async def get_readme(self, token: str, owner: str, repo: str) -> ReadmeContentResponse:
-        payload = await self._request(token, "GET", f"/repos/{owner}/{repo}/readme")
+    async def create_repository(self, token: str, request: CreateRepositoryRequest) -> RepositorySummary:
+        path = f"/orgs/{request.owner}/repos" if request.kind == 'org' else "/user/repos"
+        payload = {
+            "name": request.name,
+            "private": request.private,
+            "auto_init": request.auto_init,
+        }
+        if request.description and request.description.strip():
+            payload["description"] = request.description.strip()
+
+        response = await self._request(token, "POST", path, json=payload)
+        if not isinstance(response, dict):
+            raise HTTPException(status_code=502, detail="GitHub no devolvio informacion valida al crear el repositorio.")
+
+        return RepositorySummary(
+            name=response["name"],
+            full_name=response["full_name"],
+            private=bool(response.get("private", False)),
+            html_url=response["html_url"],
+            default_branch=response.get("default_branch", "main"),
+            description=response.get("description"),
+        )
+
+    async def get_readme(self, token: str, owner: str, repo: str, path: str = "README.md") -> ReadmeContentResponse:
+        payload = await self._request(token, "GET", f"/repos/{owner}/{repo}/contents/{path}")
         content = payload.get("content", "")
         encoding = payload.get("encoding")
 
@@ -101,8 +125,8 @@ class GitHubClient:
                 [
                     "",
                     "## Participantes",
-                    "| Nombre | Rol | Contrato o vinculación | Dedicación | Aporte |",
-                    "| --- | --- | --- | --- | --- |",
+                    "| Nombre | Documento | Rol | Contrato o vinculación | Dedicación | Instituciones | Aporte |",
+                    "| --- | --- | --- | --- | --- | --- | --- |",
                     *participant_rows,
                 ]
             )
@@ -116,6 +140,7 @@ class GitHubClient:
                 lines.extend(["", "### Contratos o vinculación", *[f"- {value}" for value in contracts]])
 
         self._append_text_section(lines, "Resultados o estado actual", request.results_or_status)
+        self._append_link_section(lines, "OSF", request.osf_url)
         self._append_text_section(lines, "Contacto", request.contact)
         self._append_text_section(lines, "Licencia", request.license)
 
@@ -192,17 +217,31 @@ class GitHubClient:
         if content:
             lines.extend(["", f"## {title}", "```text", content, "```"])
 
+    def _append_link_section(self, lines: list[str], title: str, value: str) -> None:
+        content = value.strip()
+        if content:
+            lines.extend(["", f"## {title}", f"[{content}]({content})"])
+
     def _participant_row(self, participant: object) -> str | None:
         name = self._escape_markdown(getattr(participant, "name", "")).strip()
+        document = self._escape_markdown(getattr(participant, "document", "") or "").strip()
+        institutions_value = getattr(participant, "institutions", []) or []
+        if isinstance(institutions_value, list):
+            institutions = self._escape_markdown(", ".join(str(item) for item in institutions_value if str(item).strip())).strip()
+        else:
+            institutions = self._escape_markdown(str(institutions_value)).strip()
         role = self._escape_markdown(getattr(participant, "role", "")).strip()
         contract = self._escape_markdown(getattr(participant, "contract", "") or "").strip()
         dedication = self._escape_markdown(getattr(participant, "dedication", "") or "").strip()
         contribution = self._escape_markdown(getattr(participant, "contribution", "") or "").strip()
 
-        if not any([name, role, contract, dedication, contribution]):
+        if not any([name, document, institutions, role, contract, dedication, contribution]):
             return None
 
-        return f"| {name or ' '} | {role or ' '} | {contract or ' '} | {dedication or ' '} | {contribution or ' '} |"
+        return (
+            f"| {name or ' '} | {document or ' '} | {role or ' '} | {contract or ' '} | "
+            f"{dedication or ' '} | {institutions or ' '} | {contribution or ' '} |"
+        )
 
     def _unique_non_empty(self, values: Sequence[str]) -> list[str]:
         unique: list[str] = []

@@ -33,8 +33,13 @@ class ReadmeService {
     required String token,
     required String owner,
     required String repo,
+    String path = 'README.md',
   }) async {
-    final uri = Uri.parse('${AppConfig.readmeApiBaseUrl}/repos/$owner/$repo/readme');
+    final uri = Uri.parse('${AppConfig.readmeApiBaseUrl}/repos/$owner/$repo/readme').replace(
+      queryParameters: {
+        'path': path.trim().isEmpty ? 'README.md' : path.trim(),
+      },
+    );
     final response = await http.get(uri, headers: _headers(token));
 
     _ensureSuccess(response, expectedStatusCodes: const [200], fallback: 'No fue posible cargar el README');
@@ -69,12 +74,14 @@ class ReadmeService {
     required String repo,
     required String markdown,
     required String commitMessage,
+    required String path,
     String? branch,
   }) async {
     final uri = Uri.parse('${AppConfig.readmeApiBaseUrl}/repos/$owner/$repo/readme');
     final body = <String, dynamic>{
       'markdown': markdown,
       'commit_message': commitMessage,
+      'path': path.trim().isEmpty ? 'README.md' : path.trim(),
       if (branch != null && branch.trim().isNotEmpty) 'branch': branch.trim(),
     };
 
@@ -85,6 +92,32 @@ class ReadmeService {
     );
 
     _ensureSuccess(response, expectedStatusCodes: const [200], fallback: 'No fue posible publicar el README');
+  }
+
+  Future<ReadmeRepositoryOption> createRepository({
+    required String token,
+    required String owner,
+    required String kind,
+    required String name,
+    bool private = true,
+    String? description,
+  }) async {
+    final uri = Uri.parse('${AppConfig.readmeApiBaseUrl}/repos');
+    final response = await http.post(
+      uri,
+      headers: _headers(token),
+      body: jsonEncode({
+        'owner': owner,
+        'kind': kind,
+        'name': name,
+        'private': private,
+        if (description != null && description.trim().isNotEmpty) 'description': description.trim(),
+        'auto_init': true,
+      }),
+    );
+
+    _ensureSuccess(response, expectedStatusCodes: const [200, 201], fallback: 'No fue posible crear el repositorio');
+    return ReadmeRepositoryOption.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   Map<String, String> _headers(String token) {

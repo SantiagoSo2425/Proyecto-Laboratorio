@@ -40,6 +40,7 @@ Documentos tecnicos detallados:
 Estado funcional (backend + frontend):
 - Auth JWT: Implementado
 - Personas: Implementado
+- Instituciones: Implementado
 - Tipos de rol: Implementado
 - Roles: Implementado
 - Proyectos: Implementado
@@ -54,6 +55,10 @@ Estado funcional (backend + frontend):
 UI/UX actual:
 - Relaciones tecnicas fuera del menu principal.
 - Relaciones embebidas en pantallas de detalle (proyecto y trabajo), segun refactor reciente.
+- Instituciones y contratos con administracion propia en el menu lateral.
+- Los proyectos ahora manejan `codigo_proyecto` y lo usan como referencia principal para GitHub.
+- El generador README ahora selecciona una persona del proyecto, usa `documento + nombre` para la carpeta y acepta enlace OSF manual.
+- El acceso al generador README sigue visible en el menu, pero muestra un aviso y solo se usa desde el detalle de un proyecto.
 
 ## 5) Flujo de autenticacion JWT
 1. `POST /api/v1/auth/login` con usuario/clave.
@@ -78,9 +83,12 @@ Los seeds se aplican en inicializacion limpia del volumen de PostgreSQL.
 Datos base incluidos:
 - tipos de rol, roles
 - personas (incluye admin)
+- instituciones
 - proyecto, trabajo de grado, producto
 - relaciones: proyecto_persona, trabajo_persona, proyecto_producto, producto_trabajo
+- relaciones N:M con instituciones
 - contratos
+- codigo de proyecto
 
 ## 7) Ejecucion local con Docker Compose
 Requisitos:
@@ -138,12 +146,15 @@ Pantallas clave:
 - Personas
 - Proyectos
 - Trabajos de grado
+- Instituciones
+- Contratos
 - Catalogos: tipos de rol, roles, productos
 
 Pantallas de detalle:
 - Proyecto: personas, productos y contratos embebidos.
 - Trabajo de grado: personas y productos embebidos.
 - Persona: proyectos y trabajos donde participa.
+- Proyecto y persona muestran instituciones asociadas.
 
 ## 11) Variables de entorno relevantes
 Backend:

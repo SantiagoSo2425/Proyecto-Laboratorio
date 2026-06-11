@@ -5,6 +5,7 @@ Microservicio independiente en FastAPI para generar, leer y publicar `README.md`
 ## Funcionalidades
 
 - Listar repositorios de un usuario u organizacion.
+- Crear repositorios desde la API.
 - Obtener el `README.md` actual de un repositorio.
 - Generar markdown desde una plantilla base parametrizable.
 - Publicar o actualizar `README.md` en GitHub.
@@ -13,7 +14,9 @@ Microservicio independiente en FastAPI para generar, leer y publicar `README.md`
 ## Endpoints
 
 - `GET /repos`
+- `POST /repos`
 - `GET /repos/{owner}/{repo}/readme`
+- `GET /repos/{owner}/{repo}/readme?path=...`
 - `POST /repos/{owner}/{repo}/readme`
 - `GET /readme/template`
 - `POST /readme/generate`

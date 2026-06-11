@@ -23,6 +23,8 @@ Menu lateral visible para usuario final:
 - Personas
 - Proyectos
 - Trabajos de grado
+- Instituciones
+- Contratos
 - Tipos de rol
 - Roles
 - Productos
@@ -35,12 +37,17 @@ Las relaciones tecnicas ya no aparecen como modulos de menu principal.
 - `personas_screen.dart`
 - `project_list_screen.dart`
 - `work_degree_list_screen.dart`
+- `institucion_list_screen.dart`
+- `contrato_list_screen.dart`
+- `readme_generator_screen.dart`
 - Catalogos: `tipo_rol_list_screen.dart`, `rol_list_screen.dart`, `producto_list_screen.dart`
 
 ## 5) Detalles con relaciones embebidas
 ### Proyecto (`project_detail_screen.dart`)
 Incluye:
 - Datos base del proyecto.
+- Tipo de proyecto.
+- Instituciones asociadas.
 - Personas asociadas (rol, horas, fechas).
 - Productos asociados.
 - Contratos proyecto-persona.
@@ -59,6 +66,7 @@ Incluye:
 ### Persona (`persona_detail_screen.dart`)
 Incluye:
 - Datos base de persona.
+- Instituciones asociadas.
 - Proyectos donde participa (rol, horas, fechas).
 - Trabajos de grado donde participa.
 
@@ -82,16 +90,21 @@ Esto mejora legibilidad para evaluacion funcional.
 Estado actual:
 - Auth (login/logout, persistencia token): Implementado
 - Personas (CRUD + cambio de clave): Implementado
+- Instituciones (CRUD): Implementado
 - Proyectos (CRUD + detalle embebido): Implementado
 - Trabajos de grado (CRUD + detalle embebido): Implementado
 - Productos (CRUD): Implementado
 - Tipos de rol (CRUD): Implementado
 - Roles (CRUD): Implementado
-- Contratos (CRUD embebido en detalle de proyecto): Implementado
+- Contratos (CRUD global + embebido en detalle de proyecto): Implementado
+- Generador README: selector de persona del proyecto, ruta `documento+nombre`, creación de repositorio, publicación configurable y enlace OSF manual: Implementado
+- Acceso al generador README visible en menu con aviso, pero flujo real desde detalle de proyecto: Implementado
 - Relaciones Proyecto-Persona: Implementado (embebido)
 - Relaciones Proyecto-Producto: Implementado (embebido)
 - Relaciones Trabajo-Persona: Implementado (embebido)
 - Relaciones Producto-Trabajo: Implementado (embebido)
+- Relaciones Proyecto-Institucion: Implementado desde formulario/detalle
+- Relaciones Persona-Institucion: Implementado desde formulario/detalle
 
 ## 9) Pendientes frontend
 - Persisten pantallas legacy de relaciones en codigo (`*_list_screen` y `*_form_screen`) aunque ya no son navegables desde menu principal.

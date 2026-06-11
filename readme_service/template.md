@@ -24,6 +24,9 @@ $roles
 ## Contratos o vinculación
 $contracts
 
+## OSF
+$osf_url
+
 $additional_sections
 
 ## Resultados o estado actual

@@ -64,8 +64,8 @@ class AppScaffold extends StatelessWidget {
             const Divider(),
             ListTile(
               selected: selectedIndex == 4,
-              leading: const Icon(Icons.category),
-              title: const Text('Tipos de rol'),
+              leading: const Icon(Icons.apartment),
+              title: const Text('Instituciones'),
               onTap: () {
                 Navigator.pop(context);
                 onSelect(4);
@@ -73,8 +73,8 @@ class AppScaffold extends StatelessWidget {
             ),
             ListTile(
               selected: selectedIndex == 5,
-              leading: const Icon(Icons.badge),
-              title: const Text('Roles'),
+              leading: const Icon(Icons.description),
+              title: const Text('Contratos'),
               onTap: () {
                 Navigator.pop(context);
                 onSelect(5);
@@ -82,8 +82,8 @@ class AppScaffold extends StatelessWidget {
             ),
             ListTile(
               selected: selectedIndex == 6,
-              leading: const Icon(Icons.inventory_2),
-              title: const Text('Productos'),
+              leading: const Icon(Icons.category),
+              title: const Text('Tipos de rol'),
               onTap: () {
                 Navigator.pop(context);
                 onSelect(6);
@@ -91,11 +91,44 @@ class AppScaffold extends StatelessWidget {
             ),
             ListTile(
               selected: selectedIndex == 7,
-              leading: const Icon(Icons.description),
-              title: const Text('Generador README'),
+              leading: const Icon(Icons.badge),
+              title: const Text('Roles'),
               onTap: () {
                 Navigator.pop(context);
                 onSelect(7);
+              },
+            ),
+            ListTile(
+              selected: selectedIndex == 8,
+              leading: const Icon(Icons.inventory_2),
+              title: const Text('Productos'),
+              onTap: () {
+                Navigator.pop(context);
+                onSelect(8);
+              },
+            ),
+            ListTile(
+              selected: selectedIndex == 9,
+              leading: const Icon(Icons.lock_outline),
+              title: const Text('Generador README'),
+              subtitle: const Text('Disponible desde proyectos'),
+              onTap: () {
+                Navigator.pop(context);
+                showDialog<void>(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('Generador README'),
+                    content: const Text(
+                      'El generador README se usa desde el detalle de un proyecto.\nAbre un proyecto para seleccionar la persona y generar el archivo.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text('Entendido'),
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
             const Divider(),
