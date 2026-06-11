@@ -1,16 +1,26 @@
-def persona_payload() -> dict:
+def persona_payload(institucion_id: int) -> dict:
     return {
         "nombre": "Persona Test",
         "programa": "Programa Test",
         "documento": "2000000001",
         "correo": "persona.test@example.com",
-        "institucion": "Institucion Test",
         "nivel_academico": "Estudiante",
         "semestre": 4,
         "activo": True,
         "usuario": "persona_test",
         "clave": "Secret123",
+        "institucion_ids": [institucion_id],
     }
+
+
+def create_institucion(client, auth_headers) -> int:
+    response = client.post(
+        "/api/v1/instituciones/",
+        json={"nombre": "Institucion Persona Test"},
+        headers=auth_headers,
+    )
+    assert response.status_code == 201
+    return response.json()["id_institucion"]
 
 
 def test_persona_list_requires_auth(client):
@@ -19,9 +29,11 @@ def test_persona_list_requires_auth(client):
 
 
 def test_persona_crud(client, auth_headers):
-    create = client.post("/api/v1/personas/", json=persona_payload())
+    institucion_id = create_institucion(client, auth_headers)
+    create = client.post("/api/v1/personas/", json=persona_payload(institucion_id))
     assert create.status_code == 201
     persona_id = create.json()["id_persona"]
+    assert create.json()["instituciones"][0]["nombre"] == "Institucion Persona Test"
 
     listed = client.get("/api/v1/personas/", headers=auth_headers)
     assert listed.status_code == 200

@@ -3,6 +3,8 @@ def create_proyecto(client, auth_headers) -> str:
         "id_proyecto": "PRJ-CT-01",
         "nombre": "Proyecto Contrato",
         "entidad_financiadora": "Financiador CT",
+        "tipo": "investigacion",
+        "institucion_ids": [],
     }
     response = client.post("/api/v1/proyectos/", json=payload, headers=auth_headers)
     assert response.status_code == 201
@@ -15,12 +17,12 @@ def create_persona(client) -> int:
         "programa": "Programa",
         "documento": "3000000001",
         "correo": "contrato.persona@example.com",
-        "institucion": "Institucion",
         "nivel_academico": "Estudiante",
         "semestre": 3,
         "activo": True,
         "usuario": "persona_contrato",
         "clave": "Secret123",
+        "institucion_ids": [],
     }
     response = client.post("/api/v1/personas/", json=payload)
     assert response.status_code == 201

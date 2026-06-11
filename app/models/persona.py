@@ -11,7 +11,6 @@ class Persona(Base):
     programa: Mapped[str]
     documento: Mapped[str] = mapped_column(unique=True)
     correo: Mapped[str] = mapped_column(unique=True)
-    institucion: Mapped[str]
     nivel_academico: Mapped[str]
     semestre: Mapped[int | None]
     activo: Mapped[bool] = mapped_column(default=True)

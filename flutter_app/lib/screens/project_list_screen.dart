@@ -154,7 +154,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                           return ListTile(
                             onTap: () => _openDetail(proyecto.idProyecto),
                             title: Text(proyecto.nombre),
-                            subtitle: Text('${proyecto.idProyecto} - ${proyecto.entidadFinanciadora}'),
+                            subtitle: Text(
+                              '${proyecto.codigoProyecto} | ${proyecto.idProyecto} - ${proyecto.entidadFinanciadora} - ${proyecto.tipo}',
+                            ),
                             trailing: Wrap(
                               spacing: 8,
                               children: [

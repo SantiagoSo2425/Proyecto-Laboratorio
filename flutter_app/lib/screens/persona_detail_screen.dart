@@ -70,11 +70,23 @@ class _PersonaDetailScreenState extends State<PersonaDetailScreen> {
                     Text('Documento: ${widget.persona.documento}'),
                     Text('Correo: ${widget.persona.correo}'),
                     Text('Programa: ${widget.persona.programa}'),
-                    Text('Institucion: ${widget.persona.institucion}'),
                     Text('Nivel academico: ${widget.persona.nivelAcademico}'),
                     Text('Semestre: ${widget.persona.semestre ?? 'N/A'}'),
                     Text('Usuario: ${widget.persona.usuario}'),
                     Text('Estado: ${widget.persona.activo ? 'Activo' : 'Inactivo'}'),
+                    const SizedBox(height: 8),
+                    Text('Instituciones', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    if (widget.persona.instituciones.isEmpty)
+                      const Text('Sin instituciones asociadas'),
+                    if (widget.persona.instituciones.isNotEmpty)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: widget.persona.instituciones
+                            .map((item) => Chip(label: Text(item.nombre)))
+                            .toList(),
+                      ),
                   ],
                 ),
               ),

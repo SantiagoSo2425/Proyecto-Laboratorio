@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -11,7 +12,11 @@ router = APIRouter(prefix="/personas")
 
 @router.post("/", response_model=PersonaRead, status_code=status.HTTP_201_CREATED)
 def create_persona(data: PersonaCreate, db: Session = Depends(get_db)) -> PersonaRead:
-    return crud_persona.create(db, data)
+    try:
+        return crud_persona.create(db, data)
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="No se pudo crear la persona") from exc
 
 
 @router.get("/{id_persona}", response_model=PersonaRead)
@@ -46,7 +51,11 @@ def update_persona(
     persona = crud_persona.get(db, id_persona)
     if not persona:
         raise HTTPException(status_code=404, detail="Persona no encontrada")
-    return crud_persona.update(db, persona, data)
+    try:
+        return crud_persona.update(db, persona, data)
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="No se pudo actualizar la persona") from exc
 
 
 @router.delete("/{id_persona}", status_code=status.HTTP_204_NO_CONTENT)

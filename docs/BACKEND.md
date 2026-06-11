@@ -31,6 +31,7 @@ El proyecto backend sigue una separacion por responsabilidades:
 Routers registrados en `app/api/router.py`:
 - `auth`
 - `persona`
+- `institucion`
 - `tipo_rol`
 - `rol`
 - `proyecto`
@@ -41,6 +42,8 @@ Routers registrados en `app/api/router.py`:
 - `proyecto_producto`
 - `producto_trabajo`
 - `contrato`
+- `proyecto_institucion`
+- `persona_institucion`
 
 ## 4) Autenticacion JWT
 ### Flujo
@@ -94,6 +97,7 @@ Suite actual en carpeta `tests/`:
 - trabajo_grado
 - producto
 - contrato
+- institucion
 - proyecto_persona
 - trabajo_persona
 - proyecto_producto

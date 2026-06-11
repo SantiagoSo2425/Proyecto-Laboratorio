@@ -28,8 +28,11 @@ class ProyectoService {
   Future<Proyecto> create({
     required String token,
     required String idProyecto,
+    required String codigoProyecto,
     required String nombre,
     required String entidadFinanciadora,
+    required String tipo,
+    required List<int> institucionIds,
   }) async {
     final uri = Uri.parse('${AppConfig.apiBaseUrl}/proyectos/');
     final response = await http.post(
@@ -40,8 +43,11 @@ class ProyectoService {
       },
       body: jsonEncode({
         'id_proyecto': idProyecto,
+        'codigo_proyecto': codigoProyecto,
         'nombre': nombre,
         'entidad_financiadora': entidadFinanciadora,
+        'tipo': tipo,
+        'institucion_ids': institucionIds,
       }),
     );
 

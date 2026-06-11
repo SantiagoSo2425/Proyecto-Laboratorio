@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/contrato_provider.dart';
+import 'providers/institucion_provider.dart';
 import 'providers/persona_provider.dart';
 import 'providers/producto_provider.dart';
 import 'providers/producto_trabajo_provider.dart';
@@ -117,6 +118,14 @@ class App extends StatelessWidget {
           create: (_) => ContratoProvider(),
           update: (_, auth, provider) {
             provider ??= ContratoProvider();
+            provider.attachAuth(auth);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, InstitucionProvider>(
+          create: (_) => InstitucionProvider(),
+          update: (_, auth, provider) {
+            provider ??= InstitucionProvider();
             provider.attachAuth(auth);
             return provider;
           },

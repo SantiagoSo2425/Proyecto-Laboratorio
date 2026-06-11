@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/persona.dart';
+import '../providers/institucion_provider.dart';
 import '../providers/persona_provider.dart';
 
 class PersonaFormScreen extends StatefulWidget {
@@ -19,12 +20,12 @@ class _PersonaFormScreenState extends State<PersonaFormScreen> {
   final _programaController = TextEditingController();
   final _documentoController = TextEditingController();
   final _correoController = TextEditingController();
-  final _institucionController = TextEditingController();
   final _nivelController = TextEditingController();
   final _semestreController = TextEditingController();
   final _usuarioController = TextEditingController();
   final _claveController = TextEditingController();
   bool _activo = true;
+  final List<int> _selectedInstitucionIds = [];
 
   @override
   void initState() {
@@ -35,12 +36,19 @@ class _PersonaFormScreenState extends State<PersonaFormScreen> {
       _programaController.text = initial.programa;
       _documentoController.text = initial.documento;
       _correoController.text = initial.correo;
-      _institucionController.text = initial.institucion;
       _nivelController.text = initial.nivelAcademico;
       _semestreController.text = initial.semestre?.toString() ?? '';
       _usuarioController.text = initial.usuario;
       _activo = initial.activo;
+      _selectedInstitucionIds.addAll(initial.instituciones.map((item) => item.idInstitucion));
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final institucionProvider = context.read<InstitucionProvider>();
+      if (institucionProvider.instituciones.isEmpty) {
+        institucionProvider.load();
+      }
+    });
   }
 
   @override
@@ -49,7 +57,6 @@ class _PersonaFormScreenState extends State<PersonaFormScreen> {
     _programaController.dispose();
     _documentoController.dispose();
     _correoController.dispose();
-    _institucionController.dispose();
     _nivelController.dispose();
     _semestreController.dispose();
     _usuarioController.dispose();
@@ -70,13 +77,13 @@ class _PersonaFormScreenState extends State<PersonaFormScreen> {
       'programa': _programaController.text.trim(),
       'documento': _documentoController.text.trim(),
       'correo': _correoController.text.trim(),
-      'institucion': _institucionController.text.trim(),
       'nivel_academico': _nivelController.text.trim(),
       'semestre': _semestreController.text.trim().isEmpty
           ? null
           : int.tryParse(_semestreController.text.trim()),
       'activo': _activo,
       'usuario': _usuarioController.text.trim(),
+      'institucion_ids': _selectedInstitucionIds,
     };
 
     if (!isEdit) {
@@ -103,6 +110,8 @@ class _PersonaFormScreenState extends State<PersonaFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.initial != null;
+    final institucionProvider = context.watch<InstitucionProvider>();
+    final instituciones = institucionProvider.instituciones;
 
     return Scaffold(
       appBar: AppBar(title: Text(isEdit ? 'Editar persona' : 'Nueva persona')),
@@ -145,12 +154,6 @@ class _PersonaFormScreenState extends State<PersonaFormScreen> {
               ),
               const SizedBox(height: 12),
               TextFormField(
-                controller: _institucionController,
-                decoration: const InputDecoration(labelText: 'Institucion'),
-                validator: (value) => value == null || value.isEmpty ? 'Requerido' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
                 controller: _nivelController,
                 decoration: const InputDecoration(labelText: 'Nivel academico'),
                 validator: (value) => value == null || value.isEmpty ? 'Requerido' : null,
@@ -172,6 +175,40 @@ class _PersonaFormScreenState extends State<PersonaFormScreen> {
                 decoration: const InputDecoration(labelText: 'Usuario'),
                 validator: (value) => value == null || value.isEmpty ? 'Requerido' : null,
               ),
+              const SizedBox(height: 16),
+              Text('Instituciones', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              if (institucionProvider.isLoading && instituciones.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: LinearProgressIndicator(),
+                ),
+              if (!institucionProvider.isLoading && instituciones.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('No hay instituciones disponibles. Crea una primero.'),
+                ),
+              if (instituciones.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: instituciones.map((institucion) {
+                    final selected = _selectedInstitucionIds.contains(institucion.idInstitucion);
+                    return FilterChip(
+                      label: Text(institucion.nombre),
+                      selected: selected,
+                      onSelected: (value) {
+                        setState(() {
+                          if (value) {
+                            _selectedInstitucionIds.add(institucion.idInstitucion);
+                          } else {
+                            _selectedInstitucionIds.remove(institucion.idInstitucion);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
               if (!isEdit) ...[
                 const SizedBox(height: 12),
                 TextFormField(

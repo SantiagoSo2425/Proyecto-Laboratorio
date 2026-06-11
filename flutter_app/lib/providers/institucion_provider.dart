@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 
-import '../models/proyecto.dart';
+import '../models/institucion.dart';
 import '../services/api_client.dart';
-import '../services/proyecto_service.dart';
+import '../services/institucion_service.dart';
 import 'auth_provider.dart';
 
-class ProyectoProvider extends ChangeNotifier {
-  final ProyectoService _service = ProyectoService();
+class InstitucionProvider extends ChangeNotifier {
+  final InstitucionService _service = InstitucionService();
   AuthProvider? _auth;
 
-  List<Proyecto> proyectos = [];
+  List<Institucion> instituciones = [];
   bool isLoading = false;
   String? error;
 
@@ -30,26 +30,19 @@ class ProyectoProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      proyectos = await _service.list(token: token);
+      instituciones = await _service.list(token: token);
     } on UnauthorizedException {
       error = 'Session expired. Please login again.';
       await _auth?.logout();
     } catch (_) {
-      error = 'Failed to load proyectos';
+      error = 'Failed to load instituciones';
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> create({
-    required String idProyecto,
-    required String codigoProyecto,
-    required String nombre,
-    required String entidadFinanciadora,
-    required String tipo,
-    required List<int> institucionIds,
-  }) async {
+  Future<bool> create(String nombre) async {
     final token = _auth?.token;
     if (token == null) {
       error = 'Not authenticated';
@@ -58,15 +51,7 @@ class ProyectoProvider extends ChangeNotifier {
     }
 
     try {
-      await _service.create(
-        token: token,
-        idProyecto: idProyecto,
-        codigoProyecto: codigoProyecto,
-        nombre: nombre,
-        entidadFinanciadora: entidadFinanciadora,
-        tipo: tipo,
-        institucionIds: institucionIds,
-      );
+      await _service.create(token: token, nombre: nombre);
       await load();
       return true;
     } on UnauthorizedException {
@@ -74,20 +59,13 @@ class ProyectoProvider extends ChangeNotifier {
       await _auth?.logout();
       return false;
     } catch (_) {
-      error = 'Failed to create proyecto';
+      error = 'Failed to create institucion';
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> update({
-    required String idProyecto,
-    required String codigoProyecto,
-    required String nombre,
-    required String entidadFinanciadora,
-    required String tipo,
-    required List<int> institucionIds,
-  }) async {
+  Future<bool> update(int idInstitucion, String nombre) async {
     final token = _auth?.token;
     if (token == null) {
       error = 'Not authenticated';
@@ -96,17 +74,7 @@ class ProyectoProvider extends ChangeNotifier {
     }
 
     try {
-      await _service.update(
-        token: token,
-        idProyecto: idProyecto,
-        data: {
-          'codigo_proyecto': codigoProyecto,
-          'nombre': nombre,
-          'entidad_financiadora': entidadFinanciadora,
-          'tipo': tipo,
-          'institucion_ids': institucionIds,
-        },
-      );
+      await _service.update(token: token, idInstitucion: idInstitucion, nombre: nombre);
       await load();
       return true;
     } on UnauthorizedException {
@@ -114,13 +82,13 @@ class ProyectoProvider extends ChangeNotifier {
       await _auth?.logout();
       return false;
     } catch (_) {
-      error = 'Failed to update proyecto';
+      error = 'Failed to update institucion';
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> delete(String idProyecto) async {
+  Future<bool> delete(int idInstitucion) async {
     final token = _auth?.token;
     if (token == null) {
       error = 'Not authenticated';
@@ -129,7 +97,7 @@ class ProyectoProvider extends ChangeNotifier {
     }
 
     try {
-      await _service.delete(token: token, idProyecto: idProyecto);
+      await _service.delete(token: token, idInstitucion: idInstitucion);
       await load();
       return true;
     } on UnauthorizedException {
@@ -137,7 +105,7 @@ class ProyectoProvider extends ChangeNotifier {
       await _auth?.logout();
       return false;
     } catch (_) {
-      error = 'Failed to delete proyecto';
+      error = 'Failed to delete institucion';
       notifyListeners();
       return false;
     }

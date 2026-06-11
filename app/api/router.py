@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.routers import (
     auth,
     contrato,
+    institucion,
     persona,
     producto,
     producto_trabajo,
@@ -19,6 +20,7 @@ api_router = APIRouter(prefix="/api/v1")
 
 api_router.include_router(auth.router, tags=["auth"])
 api_router.include_router(persona.router, tags=["persona"])
+api_router.include_router(institucion.router, tags=["institucion"])
 api_router.include_router(tipo_rol.router, tags=["tipo_rol"])
 api_router.include_router(rol.router, tags=["rol"])
 api_router.include_router(proyecto.router, tags=["proyecto"])

@@ -12,6 +12,7 @@ El backend usa `search_path=proyecto` en la conexion SQLAlchemy.
 Catalogos:
 - `tipo_rol`
 - `rol`
+- `institucion`
 - `producto`
 
 Nucleo:
@@ -25,6 +26,8 @@ Relaciones:
 - `trabajo_persona`
 - `proyecto_producto`
 - `producto_trabajo`
+- `persona_institucion`
+- `proyecto_institucion`
 
 ## 3) Relaciones de negocio
 - Un `tipo_rol` tiene muchos `rol`.
@@ -33,6 +36,8 @@ Relaciones:
 - Una `persona` puede participar en varios `trabajo_grado` (tabla `trabajo_persona`).
 - Un `proyecto` puede asociar varios `producto` (tabla `proyecto_producto`).
 - Un `trabajo_grado` puede asociar varios `producto` (tabla `producto_trabajo`).
+- Una `persona` puede pertenecer a varias `institucion` (tabla `persona_institucion`).
+- Un `proyecto` puede estar asociado a varias `institucion` (tabla `proyecto_institucion`).
 - `contrato` relaciona `proyecto` con `persona`.
 
 ## 4) Diagrama logico simplificado
@@ -52,6 +57,12 @@ erDiagram
     PROYECTO ||--o{ PROYECTO_PRODUCTO : asocia
     PRODUCTO ||--o{ PROYECTO_PRODUCTO : pertenece
 
+    PERSONA ||--o{ PERSONA_INSTITUCION : pertenece
+    INSTITUCION ||--o{ PERSONA_INSTITUCION : recibe
+
+    PROYECTO ||--o{ PROYECTO_INSTITUCION : asocia
+    INSTITUCION ||--o{ PROYECTO_INSTITUCION : recibe
+
     TRABAJO_GRADO ||--o{ PRODUCTO_TRABAJO : asocia
     PRODUCTO ||--o{ PRODUCTO_TRABAJO : pertenece
 
@@ -63,11 +74,13 @@ erDiagram
 Datos iniciales cargados en `init/002_seed.sql`:
 - 2 tipos de rol
 - 2 roles
+- 2 instituciones
 - 2 personas
 - 1 proyecto
 - 1 trabajo de grado
 - 1 producto
 - Relaciones iniciales de proyecto/trabajo/producto
+- Relaciones con instituciones
 - 2 contratos
 
 Usuario admin incluido en seeds:
@@ -93,3 +106,4 @@ Esto recrea el contenedor de PostgreSQL y vuelve a ejecutar scripts de `init/`.
 ## 8) Pendientes de base de datos
 - Actualmente no hay migraciones versionadas (Alembic).
 - No se registran constraints de unicidad adicionales para evitar duplicados en algunas tablas de relacion (se puede endurecer en una siguiente iteracion).
+- `persona.institucion` fue reemplazado por `persona_institucion`.

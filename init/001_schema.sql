@@ -28,8 +28,16 @@ CREATE TABLE persona (
 
 CREATE TABLE proyecto (
   id_proyecto VARCHAR(40) PRIMARY KEY,
+  codigo_proyecto VARCHAR(80) NOT NULL UNIQUE,
   nombre VARCHAR(200) NOT NULL,
-  entidad_financiadora VARCHAR(150) NOT NULL
+  entidad_financiadora VARCHAR(150) NOT NULL,
+  tipo VARCHAR(30) NOT NULL DEFAULT 'investigacion',
+  CONSTRAINT proyecto_tipo_chk CHECK (tipo IN ('investigacion', 'extension'))
+);
+
+CREATE TABLE institucion (
+  id_institucion SERIAL PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL UNIQUE
 );
 
 CREATE TABLE producto (
@@ -52,6 +60,20 @@ CREATE TABLE proyecto_persona (
   horas_semanales INT NOT NULL CHECK (horas_semanales > 0),
   fecha_inicio DATE NOT NULL,
   fecha_fin DATE NULL
+);
+
+CREATE TABLE persona_institucion (
+  id SERIAL PRIMARY KEY,
+  id_persona INT NOT NULL REFERENCES persona(id_persona),
+  id_institucion INT NOT NULL REFERENCES institucion(id_institucion),
+  CONSTRAINT persona_institucion_unique UNIQUE (id_persona, id_institucion)
+);
+
+CREATE TABLE proyecto_institucion (
+  id SERIAL PRIMARY KEY,
+  id_proyecto VARCHAR(40) NOT NULL REFERENCES proyecto(id_proyecto),
+  id_institucion INT NOT NULL REFERENCES institucion(id_institucion),
+  CONSTRAINT proyecto_institucion_unique UNIQUE (id_proyecto, id_institucion)
 );
 
 CREATE TABLE contrato (

@@ -19,10 +19,20 @@ def create_rol(client, auth_headers, id_tipo: int) -> int:
 
 
 def create_proyecto(client, auth_headers) -> str:
+    institucion = client.post(
+        "/api/v1/instituciones/",
+        json={"nombre": "Institucion PP Proyecto"},
+        headers=auth_headers,
+    )
+    assert institucion.status_code == 201
+    institucion_id = institucion.json()["id_institucion"]
+
     payload = {
         "id_proyecto": "PRJ-PP-01",
         "nombre": "Proyecto PP",
         "entidad_financiadora": "Financiador PP",
+        "tipo": "investigacion",
+        "institucion_ids": [institucion_id],
     }
     response = client.post("/api/v1/proyectos/", json=payload, headers=auth_headers)
     assert response.status_code == 201
@@ -35,12 +45,12 @@ def create_persona(client) -> int:
         "programa": "Programa",
         "documento": "4000000001",
         "correo": "pp.persona@example.com",
-        "institucion": "Institucion",
         "nivel_academico": "Estudiante",
         "semestre": 2,
         "activo": True,
         "usuario": "persona_pp",
         "clave": "Secret123",
+        "institucion_ids": [],
     }
     response = client.post("/api/v1/personas/", json=payload)
     assert response.status_code == 201

@@ -4,14 +4,26 @@ def test_proyecto_list_requires_auth(client):
 
 
 def test_proyecto_crud(client, auth_headers):
+    institucion = client.post(
+        "/api/v1/instituciones/",
+        json={"nombre": "Institucion Proyecto Test"},
+        headers=auth_headers,
+    )
+    assert institucion.status_code == 201
+    institucion_id = institucion.json()["id_institucion"]
+
     payload = {
         "id_proyecto": "PRJ-TEST-01",
         "nombre": "Proyecto Test",
         "entidad_financiadora": "Financiador Test",
+        "tipo": "investigacion",
+        "institucion_ids": [institucion_id],
     }
     created = client.post("/api/v1/proyectos/", json=payload, headers=auth_headers)
     assert created.status_code == 201
     proyecto_id = created.json()["id_proyecto"]
+    assert created.json()["codigo_proyecto"] == "PRJ-TEST-01"
+    assert created.json()["instituciones"][0]["nombre"] == "Institucion Proyecto Test"
 
     listed = client.get("/api/v1/proyectos/", headers=auth_headers)
     assert listed.status_code == 200

@@ -19,3 +19,5 @@ class ContratoRead(ContratoBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    proyecto_nombre: str | None = None
+    persona_nombre: str | None = None
